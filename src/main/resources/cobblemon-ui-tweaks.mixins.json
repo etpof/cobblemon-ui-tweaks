@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "ca.landonjw.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"mixins": [
+		"PCGUIMixin",
+		"StorageWidgetMixin",
+		"SummaryMixin",
+		"NicknameEntryWidgetMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

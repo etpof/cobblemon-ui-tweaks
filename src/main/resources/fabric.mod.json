@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "cobblemon-ui-tweaks",
+	"version": "${version}",
+	"name": "Cobblemon UI Tweaks",
+	"description": "Adds small QOL improvements to cobblemon's user interfaces",
+	"authors": [
+		"landonjw"
+	],
+	"license": "MIT",
+	"icon": "assets/cobblemon-ui-tweaks/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "ca.landonjw.CobblemonUITweaks",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"cobblemon-ui-tweaks.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}

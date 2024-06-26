@@ -13,6 +13,7 @@ object GUIHandler {
     private var PC: PCGUI? = null
     var hoveredPokemon: Pokemon? = null
     var hoveredPokemonType: String? = null
+    var lastPCBox: Int = 0
 
     fun onSummaryPressFromPC(pc: PCGUI) {
         if (hoveredPokemon != null) {

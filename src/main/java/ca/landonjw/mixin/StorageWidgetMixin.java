@@ -17,10 +17,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 
 @Mixin(StorageWidget.class)
-public class StorageWidgetMixin {
+public abstract class StorageWidgetMixin {
 
     @Final @Shadow(remap = false) private ArrayList<BoxStorageSlot> boxSlots;
     @Final @Shadow(remap = false) private ArrayList<PartyStorageSlot> partySlots;
+    @Shadow(remap = false) public abstract void setBox(int value);
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void cobblemon_ui_tweaks$init(CallbackInfo ci) {
+        setBox(GUIHandler.INSTANCE.getLastPCBox());
+    }
 
     @Inject(method = "renderWidget", at = @At("TAIL"))
     public void cobblemon_ui_tweaks$renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
@@ -35,6 +41,11 @@ public class StorageWidgetMixin {
             GUIHandler.INSTANCE.setHoveredPokemon(slot.getPokemon());
             GUIHandler.INSTANCE.setHoveredPokemonType(slotType);
         }
+    }
+
+    @Inject(method = "setBox", at = @At("TAIL"), remap = false)
+    public void cobblemon_ui_tweaks$setBox(int value, CallbackInfo ci) {
+        GUIHandler.INSTANCE.setLastPCBox(value);
     }
 
 }

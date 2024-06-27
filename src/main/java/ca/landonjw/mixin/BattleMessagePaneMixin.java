@@ -1,6 +1,7 @@
 package ca.landonjw.mixin;
 
 import ca.landonjw.CobblemonUITweaks;
+import ca.landonjw.GUIHandler;
 import ca.landonjw.ResizeableTextQueue;
 import com.cobblemon.mod.common.api.gui.GuiUtilsKt;
 import com.cobblemon.mod.common.client.CobblemonResources;
@@ -38,10 +39,6 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Shadow(remap = false) public abstract int getAppropriateY();
 
-    @Shadow(remap = false) @Final public static int FRAME_WIDTH;
-
-    @Shadow(remap = false) public abstract int getAppropriateX();
-
     @Shadow(remap = false) protected abstract void correctSize();
 
     @Shadow(remap = false) private float opacity;
@@ -52,12 +49,10 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Shadow(remap = false) protected abstract int addEntry(@NotNull BattleMessagePane.BattleMessageLine entry);
 
-    @Shadow protected abstract void updateScrollingState(double mouseX, double mouseY);
+    @Shadow(remap = false) protected abstract void updateScrollingState(double mouseX, double mouseY);
 
     @Shadow private boolean scrolling;
-    @Shadow @Final public static int EXPAND_TOGGLE_SIZE;
-    @Unique private int frameWidthOverride = FRAME_WIDTH;
-    @Unique private int widthOverride = TEXT_BOX_WIDTH;
+    @Shadow(remap = false) @Final public static int EXPAND_TOGGLE_SIZE;
     @Unique private final List<Component> battleMessages = new ArrayList<>();
 
     @Unique private final ResourceLocation battlePaneL = new ResourceLocation(CobblemonUITweaks.MODID, "textures/battle/battle_log_left.png");
@@ -87,19 +82,18 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
     @Inject(method = "correctSize", at = @At("HEAD"), remap = false, cancellable = true)
     private void cobblemon_ui_tweaks$correctSize(CallbackInfo ci) {
         var textboxHeight = expanded ? TEXT_BOX_HEIGHT * 2 : TEXT_BOX_HEIGHT;
-        updateSize(widthOverride, textboxHeight, getAppropriateY() + 6, getAppropriateY() + 6 + textboxHeight);
-        setLeftPos(minecraft.getWindow().getGuiScaledWidth() - (frameWidthOverride + 12));
+        updateSize(getWidthOverride(), textboxHeight, getAppropriateY() + 6, getAppropriateY() + 6 + textboxHeight);
+        setLeftPos(minecraft.getWindow().getGuiScaledWidth() - (getFrameWidth() + 12));
         ci.cancel();
     }
 
     @Unique
     private void cobblemon_ui_tweaks$correctBattleText() {
-        Thread.dumpStack();
         this.clearEntries();
         var textRenderer = Minecraft.getInstance().font;
         for (var message : battleMessages) {
             var line = message.copy().setStyle(message.getStyle().withBold(true).withFont(CobblemonResources.INSTANCE.getDEFAULT_LARGE()));
-            var wrappedLines = textRenderer.getSplitter().splitLines(line, widthOverride - 11, line.getStyle());
+            var wrappedLines = textRenderer.getSplitter().splitLines(line, getWidthOverride() - 11, line.getStyle());
             var lines = Language.getInstance().getVisualOrder(wrappedLines);
             for (var finalLine : lines) {
                 this.addEntry(new BattleMessagePane.BattleMessageLine((BattleMessagePane)(Object)this, finalLine));
@@ -110,7 +104,7 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         var toggleOffsetY = expanded ? 92 : 46;
-        if (mouseX > (x0 + frameWidthOverride - 9) && mouseX < (x0 + frameWidthOverride - 9 + EXPAND_TOGGLE_SIZE) && mouseY > (getAppropriateY() + toggleOffsetY) && mouseY < (getAppropriateY() + toggleOffsetY + EXPAND_TOGGLE_SIZE)) {
+        if (mouseX > (x0 + getFrameWidth() - 9) && mouseX < (x0 + getFrameWidth() - 9 + EXPAND_TOGGLE_SIZE) && mouseY > (getAppropriateY() + toggleOffsetY) && mouseY < (getAppropriateY() + toggleOffsetY + EXPAND_TOGGLE_SIZE)) {
             expanded = !expanded;
         }
 
@@ -122,14 +116,28 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    @Unique
+    private int getWidthOverride() {
+        return GUIHandler.INSTANCE.getBattleLogWidthOverride();
+    }
+
+    @Unique
+    private int getFrameWidth() {
+        return getWidthOverride() + 16;
+    }
+
+    @Unique
+    private void setWidthOverride(int width) {
+        GUIHandler.INSTANCE.setBattleLogWidthOverride(width);
+    }
+
     @Inject(method = "mouseDragged", at = @At("TAIL"))
     private void cobblemon_ui_tweaks$mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY, CallbackInfoReturnable<Boolean> cir) {
         if (button == 1) return;
         if (mouseY < this.y0 || mouseY > this.y1) return;
         if (mouseX - deltaX < this.x0 - 5 || mouseX - deltaX > this.x0 + 5) return;
         var endX = minecraft.getWindow().getGuiScaledWidth() - 28;
-        this.widthOverride = (int)Math.max(endX - mouseX, TEXT_BOX_WIDTH);
-        this.frameWidthOverride = this.widthOverride + 16;
+        setWidthOverride((int)Math.max(endX - mouseX, TEXT_BOX_WIDTH));
         cobblemon_ui_tweaks$correctBattleText();
     }
 
@@ -137,12 +145,11 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
     private void cobblemon_ui_tweaks$render(GuiGraphics context, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         correctSize();
         var appropriateY = getAppropriateY();
-        System.out.println(widthOverride);
 
         GuiUtilsKt.blitk(
                 context.pose(),
                 expanded ? expandedBattlePaneR : battlePaneR,
-                x0 + frameWidthOverride - 12,
+                x0 + getFrameWidth() - 12,
                 appropriateY,
                 expanded ? 101 : 55,
                 12,
@@ -165,10 +172,10 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
                 x0 + 6,
                 appropriateY,
                 expanded ? 101 : 55,
-                frameWidthOverride - 18,
+                getFrameWidth() - 18,
                 0,
                 0,
-                frameWidthOverride - 18,
+                getFrameWidth() - 18,
                 expanded ? 101 : 55,
                 0,
                 1,
@@ -203,7 +210,7 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
         context.enableScissor(
                 x0 + 5,
                 appropriateY + 6,
-                x0 + 5 + widthOverride,
+                x0 + 5 + getWidthOverride(),
                 appropriateY + 6 + textboxHeight
         );
         super.render(context, mouseX, mouseY, partialTicks);
@@ -213,7 +220,7 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Override
     public int getRowWidth() {
-        return widthOverride;
+        return getWidthOverride();
     }
 
     @Override
@@ -223,7 +230,7 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Override
     protected int getScrollbarPosition() {
-        return this.x0 + widthOverride;
+        return this.x0 + getWidthOverride();
     }
 
 }

@@ -23,7 +23,7 @@ public abstract class StorageWidgetMixin {
     @Final @Shadow(remap = false) private ArrayList<PartyStorageSlot> partySlots;
     @Shadow(remap = false) public abstract void setBox(int value);
 
-    @Inject(method = "<init>", at = @At("TAIL"))
+    @Inject(method = "<init>", at = @At("TAIL"), remap = false)
     private void cobblemon_ui_tweaks$init(CallbackInfo ci) {
         setBox(GUIHandler.INSTANCE.getLastPCBox());
     }

@@ -6,7 +6,10 @@
 		"PCGUIMixin",
 		"StorageWidgetMixin",
 		"SummaryMixin",
-		"NicknameEntryWidgetMixin"
+		"NicknameEntryWidgetMixin",
+		"BattleMessagePaneMixin",
+		"ClientBattleMessageQueueMixin",
+		"BattleMessageHandlerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 
 object CobblemonUITweaks : ModInitializer {
     val logger = LoggerFactory.getLogger("cobblemon-ui-tweaks")
+    const val MODID = "cobblemon-ui-tweaks"
 
 	override fun onInitialize() {}
 }

@@ -14,6 +14,7 @@ object GUIHandler {
     var hoveredPokemon: Pokemon? = null
     var hoveredPokemonType: String? = null
     var lastPCBox: Int = 0
+    var battleLogWidthOverride: Int = 153
 
     fun onSummaryPressFromPC(pc: PCGUI) {
         if (hoveredPokemon != null) {

@@ -6,6 +6,9 @@ import com.cobblemon.mod.common.client.gui.pc.BoxStorageSlot;
 import com.cobblemon.mod.common.client.gui.pc.PartyStorageSlot;
 import com.cobblemon.mod.common.client.gui.pc.StorageSlot;
 import com.cobblemon.mod.common.client.gui.pc.StorageWidget;
+import com.cobblemon.mod.common.client.storage.ClientBox;
+import com.cobblemon.mod.common.client.storage.ClientPC;
+import com.cobblemon.mod.common.pokemon.Pokemon;
 import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,6 +27,7 @@ public abstract class StorageWidgetMixin {
     @Final @Shadow(remap = false) private ArrayList<PartyStorageSlot> partySlots;
     @Shadow(remap = false) private PastureWidget pastureWidget;
     @Shadow(remap = false) public abstract void setBox(int value);
+    @Final @Shadow(remap = false) private ClientPC pc;
 
     @Inject(method = "<init>", at = @At("TAIL"), remap = false)
     private void cobblemon_ui_tweaks$init(CallbackInfo ci) {
@@ -38,13 +42,15 @@ public abstract class StorageWidgetMixin {
         if (this.pastureWidget != null) {
             this.pastureWidget.getPastureScrollList().children().forEach(slot -> {
                 if (slot.isMouseOver(mouseX, mouseY)) {
-                    var boxSlotWithPokemon = this.boxSlots.stream().filter(boxSlot -> {
-                        var boxPokemon = boxSlot.getPokemon();
-                        return boxPokemon != null && boxPokemon.getUuid().equals(slot.getPokemon().getPokemonId());
-                    }).toList();
-                    if (boxSlotWithPokemon.size() != 1) return;
-                    GUIHandler.INSTANCE.setHoveredPokemon(boxSlotWithPokemon.get(0).getPokemon());
-                    GUIHandler.INSTANCE.setHoveredPokemonType("pasture");
+                    for (ClientBox box : pc.getBoxes()) {
+                        for (Pokemon pokemon : box.getSlots()) {
+                            if (pokemon != null && pokemon.getUuid().equals(slot.getPokemon().getPokemonId())) {
+                                GUIHandler.INSTANCE.setHoveredPokemon(pokemon);
+                                GUIHandler.INSTANCE.setHoveredPokemonType("pasture");
+                                return;
+                            }
+                        }
+                    }
                 }
             });
         }

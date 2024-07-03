@@ -13,7 +13,7 @@ public class StatWidgetMixin {
 
     @Shadow(remap = false) private int statTabIndex;
 
-    @Inject(method = "mouseClicked", at = @At("TAIL"), remap = false)
+    @Inject(method = "mouseClicked", at = @At("TAIL"))
     private void cobblemon_ui_tweaks$mouseClicked(double pMouseX, double pMouseY, int pButton, CallbackInfoReturnable<Boolean> cir) {
         if (GUIHandler.INSTANCE.getPC() != null) {
             GUIHandler.INSTANCE.setLastStatsTabIndex(this.statTabIndex);

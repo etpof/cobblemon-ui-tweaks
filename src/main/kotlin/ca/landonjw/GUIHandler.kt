@@ -12,10 +12,12 @@ import kotlin.math.min
 
 object GUIHandler {
 
-    private var PC: PCGUI? = null
+    var PC: PCGUI? = null
     var hoveredPokemon: Pokemon? = null
     var hoveredPokemonType: String? = null
     var lastPCBox: Int = 0
+    var lastSummaryTabIndex: Int = 0
+    var lastStatsTabIndex: Int = 0
 
     var battleLogWidth: Int = 153
         set(value) {
@@ -63,6 +65,14 @@ object GUIHandler {
             Minecraft.getInstance().setScreen(PC)
             PC = null
         }
+    }
+
+    fun onPCClose() {
+        PC = null
+        lastStatsTabIndex = 0
+        lastSummaryTabIndex = 0
+        hoveredPokemonType = null
+        hoveredPokemon = null
     }
 
     private fun playSound(soundEvent: SoundEvent) {

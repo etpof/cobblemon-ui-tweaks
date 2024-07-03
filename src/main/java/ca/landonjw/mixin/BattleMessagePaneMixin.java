@@ -71,7 +71,6 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Inject(method = "correctSize", at = @At("HEAD"), remap = false, cancellable = true)
     private void cobblemon_ui_tweaks$correctSize(CallbackInfo ci) {
-        System.out.println(getHeightOverride() + ", " + (int)Math.round(getY() + 6) + ", " + (int)Math.round(getY() + 6 + getHeightOverride()));
         updateSize(getWidthOverride(), getHeightOverride(), (int)Math.round(getY() + 6), (int)Math.round(getY() + 6 + getHeightOverride()));
         setLeftPos((int)Math.round(getX()));
         ci.cancel();

@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PCGUI.class)
@@ -45,6 +46,16 @@ public abstract class PCGUIMixin extends Screen {
         }
 
         return super.mouseScrolled(mouseX, mouseY, amount);
+    }
+
+    @Inject(method = "closeNormally", at = @At("TAIL"), remap = false)
+    private void cobblemon_ui_tweaks$closeNormally(CallbackInfo ci) {
+        GUIHandler.INSTANCE.onPCClose();
+    }
+
+    @Inject(method = "keyPressed", at = @At(value = "INVOKE", target = "Lcom/cobblemon/mod/common/client/gui/pc/PCGUI;playSound(Lnet/minecraft/sounds/SoundEvent;)V"))
+    private void cobblemon_ui_tweaks$keyPressedToClosePC(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        GUIHandler.INSTANCE.onPCClose();
     }
 
 }

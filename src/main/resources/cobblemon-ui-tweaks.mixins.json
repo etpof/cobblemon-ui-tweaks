@@ -9,7 +9,8 @@
 		"NicknameEntryWidgetMixin",
 		"BattleMessagePaneMixin",
 		"ClientBattleMessageQueueMixin",
-		"BattleMessageHandlerMixin"
+		"BattleMessageHandlerMixin",
+		"StatWidgetMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

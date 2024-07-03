@@ -1,6 +1,7 @@
 package ca.landonjw.mixin;
 
 import ca.landonjw.GUIHandler;
+import com.cobblemon.mod.common.client.gui.pasture.PastureWidget;
 import com.cobblemon.mod.common.client.gui.pc.BoxStorageSlot;
 import com.cobblemon.mod.common.client.gui.pc.PartyStorageSlot;
 import com.cobblemon.mod.common.client.gui.pc.StorageSlot;
@@ -21,6 +22,7 @@ public abstract class StorageWidgetMixin {
 
     @Final @Shadow(remap = false) private ArrayList<BoxStorageSlot> boxSlots;
     @Final @Shadow(remap = false) private ArrayList<PartyStorageSlot> partySlots;
+    @Shadow(remap = false) private PastureWidget pastureWidget;
     @Shadow(remap = false) public abstract void setBox(int value);
 
     @Inject(method = "<init>", at = @At("TAIL"), remap = false)
@@ -33,6 +35,19 @@ public abstract class StorageWidgetMixin {
         GUIHandler.INSTANCE.setHoveredPokemon(null);
         this.boxSlots.forEach(slot -> tryGetHoveredPokemon(slot, mouseX, mouseY, "pc"));
         this.partySlots.forEach(slot -> tryGetHoveredPokemon(slot, mouseX, mouseY, "party"));
+        if (this.pastureWidget != null) {
+            this.pastureWidget.getPastureScrollList().children().forEach(slot -> {
+                if (slot.isMouseOver(mouseX, mouseY)) {
+                    var boxSlotWithPokemon = this.boxSlots.stream().filter(boxSlot -> {
+                        var boxPokemon = boxSlot.getPokemon();
+                        return boxPokemon != null && boxPokemon.getUuid().equals(slot.getPokemon().getPokemonId());
+                    }).toList();
+                    if (boxSlotWithPokemon.size() != 1) return;
+                    GUIHandler.INSTANCE.setHoveredPokemon(boxSlotWithPokemon.get(0).getPokemon());
+                    GUIHandler.INSTANCE.setHoveredPokemonType("pasture");
+                }
+            });
+        }
     }
 
     @Unique

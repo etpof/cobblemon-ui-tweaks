@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Mixin(value = NicknameEntryWidget.class, remap = false)
@@ -21,8 +20,9 @@ public class NicknameEntryWidgetMixin {
             )
     )
     private SetNicknamePacket cobblemon_ui_tweaks$updateNickname(UUID pokemonUUID, boolean isParty, String nickname) {
-        var isPC = Objects.equals(GUIHandler.INSTANCE.getHoveredPokemonType(), "pc");
-        return new SetNicknamePacket(pokemonUUID, !isPC, nickname);
+        var hoveredPokemonType = GUIHandler.INSTANCE.getHoveredPokemonType();
+        var isPartySlot = hoveredPokemonType == null || "party".equalsIgnoreCase(hoveredPokemonType);
+        return new SetNicknamePacket(pokemonUUID, isPartySlot, nickname);
     }
 
 }

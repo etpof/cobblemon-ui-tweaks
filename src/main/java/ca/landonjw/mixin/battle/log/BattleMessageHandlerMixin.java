@@ -1,4 +1,4 @@
-package ca.landonjw.mixin;
+package ca.landonjw.mixin.battle.log;
 
 import ca.landonjw.ResizeableTextQueue;
 import com.cobblemon.mod.common.api.net.ClientNetworkPacketHandler;
@@ -12,6 +12,11 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(BattleMessageHandler.class)
 public abstract class BattleMessageHandlerMixin implements ClientNetworkPacketHandler<BattleMessagePacket> {
 
+    /**
+     * Cobblemon currently does its battle text width here, instead of letting the battle message GUI
+     * handle it. We instead override this function to simply pass along the raw battle messages
+     * and then let the battle message GUI determine how the text should render based on its width.
+     */
     @Override
     public void handle(@NotNull BattleMessagePacket battleMessagePacket, @NotNull Minecraft minecraft) {
         var battle = CobblemonClient.INSTANCE.getBattle();

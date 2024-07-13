@@ -3,14 +3,14 @@
 	"package": "ca.landonjw.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"PCGUIMixin",
-		"StorageWidgetMixin",
-		"SummaryMixin",
-		"NicknameEntryWidgetMixin",
-		"BattleMessagePaneMixin",
-		"ClientBattleMessageQueueMixin",
-		"BattleMessageHandlerMixin",
-		"StatWidgetMixin"
+		"pc.PCGUIMixin",
+		"pc.StorageWidgetMixin",
+		"pc.SummaryMixin",
+		"pc.NicknameEntryWidgetMixin",
+		"battle.log.BattleMessagePaneMixin",
+		"battle.log.ClientBattleMessageQueueMixin",
+		"battle.log.BattleMessageHandlerMixin",
+		"pc.StatWidgetMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

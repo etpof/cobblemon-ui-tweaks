@@ -1,4 +1,4 @@
-package ca.landonjw.mixin;
+package ca.landonjw.mixin.battle.log;
 
 import ca.landonjw.ResizeableTextQueue;
 import com.cobblemon.mod.common.client.battle.ClientBattleMessageQueue;

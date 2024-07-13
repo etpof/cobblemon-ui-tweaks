@@ -1,10 +1,8 @@
-package ca.landonjw.mixin;
+package ca.landonjw.mixin.battle.log;
 
 import ca.landonjw.BattleLogRenderer;
-import ca.landonjw.CobblemonUITweaks;
 import ca.landonjw.GUIHandler;
 import ca.landonjw.ResizeableTextQueue;
-import com.cobblemon.mod.common.api.gui.GuiUtilsKt;
 import com.cobblemon.mod.common.client.CobblemonResources;
 import com.cobblemon.mod.common.client.battle.ClientBattleMessageQueue;
 import com.cobblemon.mod.common.client.gui.battle.widgets.BattleMessagePane;
@@ -15,7 +13,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
@@ -35,21 +32,14 @@ import java.util.List;
 public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Shadow(remap = false) @Final public static int TEXT_BOX_WIDTH;
-    @Shadow(remap = false) private static boolean expanded;
     @Shadow(remap = false) @Final public static int TEXT_BOX_HEIGHT;
-
     @Shadow(remap = false) protected abstract void correctSize();
-
     @Shadow(remap = false) private float opacity;
-
     @Shadow(remap = false) public abstract double getScrollAmount();
-
     @Shadow(remap = false) protected abstract int addEntry(@NotNull BattleMessagePane.BattleMessageLine entry);
-
     @Shadow(remap = false) protected abstract void updateScrollingState(double mouseX, double mouseY);
-
     @Shadow(remap = false) private boolean scrolling;
-    @Shadow(remap = false) @Final public static int EXPAND_TOGGLE_SIZE;
+
     @Unique private final List<Component> battleMessages = new ArrayList<>();
 
     public BattleMessagePaneMixin(Minecraft minecraft, int i, int j, int k, int l, int m) {
@@ -58,17 +48,20 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
 
     @Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/cobblemon/mod/common/client/battle/ClientBattleMessageQueue;subscribe(Lkotlin/jvm/functions/Function1;)V"), remap = false)
     private void cobblemon_ui_tweaks$init(ClientBattleMessageQueue instance, Function1<? super FormattedCharSequence, Unit> $i$f$forEach) {
+        // When UI is first opened or becomes opaque, we set the scroll to the bottom of the message log.
+        setScrollAmount(getMaxScroll());
         var queueWithBattleMessages = (ResizeableTextQueue)(Object)instance;
+        // Any time a new battle message comes, we add it to the message list and determine how many lines should render (based on width).
         queueWithBattleMessages.cobblemon_ui_tweaks$subscribe(text -> {
             battleMessages.add(text);
-            var isFullyScrolled = getMaxScroll() - getScrollAmount() < 10;
-            if (isFullyScrolled) {
-                setScrollAmount(getMaxScroll());
-            }
             cobblemon_ui_tweaks$correctBattleText();
         });
     }
 
+    /**
+     * Updates the width based on our potentially stretched width and height.
+     * Cobblemon would otherwise still try to set the GUI back to it's expected dimensions.
+     */
     @Inject(method = "correctSize", at = @At("HEAD"), remap = false, cancellable = true)
     private void cobblemon_ui_tweaks$correctSize(CallbackInfo ci) {
         updateSize(getWidthOverride(), getHeightOverride(), (int)Math.round(getY() + 6), (int)Math.round(getY() + 6 + getHeightOverride()));
@@ -76,8 +69,16 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
         ci.cancel();
     }
 
+    /**
+     * This will scale the battle text according to the current width of the message log.
+     * This will additionally alter the scroll state to either auto-scroll if scrollbar is
+     * at bottom of list, or stay where it was prior in the list.
+     *
+     * TODO: This is currently invoking every render to resolve scrolling issues. Can this be redesigned to prevent that?
+     */
     @Unique
     private void cobblemon_ui_tweaks$correctBattleText() {
+        var isFullyScrolled = getMaxScroll() - getScrollAmount() < 10;
         this.clearEntries();
         var textRenderer = Minecraft.getInstance().font;
         for (var message : battleMessages) {
@@ -88,10 +89,14 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
                 this.addEntry(new BattleMessagePane.BattleMessageLine((BattleMessagePane)(Object)this, finalLine));
             }
         }
+        if (isFullyScrolled) {
+            setScrollAmount(getMaxScroll());
+        }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Alters the scroll amount if user is clicking on the scroll bar.
         updateScrollingState(mouseX, mouseY);
         if (scrolling) {
             setFocused(getEntryAtPosition(mouseX, mouseY));
@@ -130,22 +135,31 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
         return getHeightOverride() + 9;
     }
 
+    @Unique
     private double getX() {
         return GUIHandler.INSTANCE.getBattleLogX();
     }
 
+    @Unique
     private void setX(double value) {
         GUIHandler.INSTANCE.setBattleLogX(value);
     }
 
+    @Unique
     private double getY() {
         return GUIHandler.INSTANCE.getBattleLogY();
     }
 
+    @Unique
     private void setY(double value) {
         GUIHandler.INSTANCE.setBattleLogY(value);
     }
 
+    /**
+     * This will either move the message log or rescale it, if the player is within the bounds of those actions:
+     * Moving: Top bar of the message log.
+     * Rescaling: Bottom right corner of the message log.
+     */
     @Inject(method = "mouseDragged", at = @At("TAIL"))
     private void cobblemon_ui_tweaks$mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY, CallbackInfoReturnable<Boolean> cir) {
         if (tryMove(mouseX, mouseY, deltaX, deltaY)) return;
@@ -156,20 +170,6 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
     private boolean tryMove(double mouseX, double mouseY, double deltaX, double deltaY) {
         if (mouseY - deltaY < y0 - 20 || mouseY - deltaY > y0 + 20) return false;
         if (mouseX - deltaX < this.x0 - 10 || mouseX - deltaX > this.x1 + 10) return false;
-//        var xDiff = mouseX - this.x0;
-//        var yDiff = mouseY - this.y0;
-//        if (lastMouseX != 0) {
-//            x = x - (int)(mouseX - lastMouseX);
-//        }
-//        else {
-//            x = x + (int)Math.round(deltaX);
-//        }
-//        if (lastMouseY != 0) {
-//            y = y - (int)(mouseY - lastMouseY);
-//        }
-//        else {
-//            y = y + (int)Math.round(deltaY);
-//        }
         setX(getX() + deltaX);
         setY(getY() + deltaY);
         return true;
@@ -188,14 +188,19 @@ public abstract class BattleMessagePaneMixin extends AbstractSelectionList {
         var newWidth = Math.max(mouseX - this.x0, TEXT_BOX_WIDTH);
         setHeightOverride((int)newHeight);
         setWidthOverride((int)newWidth - 12);
-        cobblemon_ui_tweaks$correctBattleText();
         correctSize();
+        cobblemon_ui_tweaks$correctBattleText();
         return true;
     }
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void cobblemon_ui_tweaks$render(GuiGraphics context, int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         correctSize();
+
+        var isFullyScrolled = opacity != 1 || getMaxScroll() - getScrollAmount() < 2;
+        if (isFullyScrolled) {
+            setScrollAmount(getMaxScroll());
+        }
 
         BattleLogRenderer.INSTANCE.render(context, (int)Math.round(getX()), (int)Math.round(getY()), getFrameHeight(), getFrameWidth(), opacity);
 

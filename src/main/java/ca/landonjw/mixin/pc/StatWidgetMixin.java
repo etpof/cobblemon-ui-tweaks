@@ -1,4 +1,4 @@
-package ca.landonjw.mixin;
+package ca.landonjw.mixin.pc;
 
 import ca.landonjw.GUIHandler;
 import com.cobblemon.mod.common.client.gui.summary.widgets.screens.stats.StatWidget;

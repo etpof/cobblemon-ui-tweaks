@@ -10,7 +10,9 @@
 		"battle.log.BattleMessagePaneMixin",
 		"battle.log.ClientBattleMessageQueueMixin",
 		"battle.log.BattleMessageHandlerMixin",
-		"pc.StatWidgetMixin"
+		"pc.StatWidgetMixin",
+		"battle.portrait.BattleGuiMixin",
+		"battle.move.BattleMoveSelectionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

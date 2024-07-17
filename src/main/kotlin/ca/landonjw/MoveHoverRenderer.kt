@@ -48,12 +48,8 @@ object MoveHoverRenderer {
         val moveDescription = move.description.font(CobblemonResources.DEFAULT_LARGE)
         val descriptionLines = Minecraft.getInstance().font.splitter.splitLines(moveDescription, 150, moveDescription.style)
         val orderedLines = Language.getInstance().getVisualOrder(descriptionLines)
-
-        // just overwriting this value for now as a quick and dirty shortcut
-        // val effectivenessText = getMoveEffectiveness(move)
-        val effectivenessText = null
         
-        val bodyHeight = (orderedLines.size * 8) + 8 + if (effectivenessText != null) 8 else 0
+        val bodyHeight = (orderedLines.size * 8) + 8
 
         blitk(
             matrixStack = context.pose(),
@@ -193,26 +189,6 @@ object MoveHoverRenderer {
                 opacity = opacity
             )
         }
-
-        if (effectivenessText != null) {
-            drawScaledText(
-                context = context,
-                font = CobblemonResources.DEFAULT_LARGE,
-                text = effectivenessText,
-                scale = 0.85f,
-                x = x + 4,
-                y = y - bodyHeight - 34 - 4 + 3 + 34 + (orderedLines.size * 8) + 4,
-                opacity = opacity
-            )
-        }
-    }
-
-    private fun getMoveEffectiveness(move: MoveTemplate): MutableComponent? {
-        val battle = CobblemonClient.battle ?: return null
-        val opponent = battle.side2.activeClientBattlePokemon.firstOrNull()?.battlePokemon ?: return null
-        val opponentForm = opponent.species.getForm(opponent.aspects)
-        if (move.damageCategory == DamageCategories.STATUS) return null
-        return MoveEffectivenessCalculator.getMoveEffectiveness(move.elementalType, opponentForm.primaryType, opponentForm.secondaryType)
     }
 
 }

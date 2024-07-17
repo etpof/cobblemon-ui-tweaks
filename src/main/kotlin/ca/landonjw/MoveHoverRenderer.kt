@@ -49,8 +49,10 @@ object MoveHoverRenderer {
         val descriptionLines = Minecraft.getInstance().font.splitter.splitLines(moveDescription, 150, moveDescription.style)
         val orderedLines = Language.getInstance().getVisualOrder(descriptionLines)
 
-        val effectivenessText = getMoveEffectiveness(move)
-
+        // just overwriting this value for now as a quick and dirty shortcut
+        // val effectivenessText = getMoveEffectiveness(move)
+        val effectivenessText = null
+        
         val bodyHeight = (orderedLines.size * 8) + 8 + if (effectivenessText != null) 8 else 0
 
         blitk(
